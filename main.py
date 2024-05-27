@@ -24,9 +24,30 @@ app = FastAPI()
 
 
 @app.get("/items")
-async def get_all_items():
+async def get_all_items(
+    item_status: ItemStatus | None = None, due_date: datetime | None = None
+):
     if len(todo_items) == 0:
         return {"message": "No items found"}
+
+    if item_status and due_date:
+        return {
+            item_id: item
+            for item_id, item in todo_items.items()
+            if item.status == item_status and item.DueDate == due_date
+        }
+    elif item_status:
+        return {
+            item_id: item
+            for item_id, item in todo_items.items()
+            if item.status == item_status
+        }
+    if due_date:
+        return {
+            item_id: item
+            for item_id, item in todo_items.items()
+            if item.DueDate == due_date
+        }
     return todo_items
 
 
