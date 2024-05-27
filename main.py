@@ -15,7 +15,7 @@ class TodoItem(BaseModel):
     name: str
     description: str | None = None
     status: ItemStatus
-    DueDate: datetime | None = None
+    due_date: datetime | None = None
 
 
 todo_items: dict = {}
@@ -34,7 +34,7 @@ async def get_all_items(
         return {
             item_id: item
             for item_id, item in todo_items.items()
-            if item.status == item_status and item.DueDate == due_date
+            if item.status == item_status and item.due_date == due_date
         }
     elif item_status:
         return {
@@ -46,7 +46,7 @@ async def get_all_items(
         return {
             item_id: item
             for item_id, item in todo_items.items()
-            if item.DueDate == due_date
+            if item.due_date == due_date
         }
     return todo_items
 
