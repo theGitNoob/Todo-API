@@ -1,30 +1,9 @@
 from datetime import datetime
-from enum import Enum
+from typing import Annotated
 
-from fastapi import FastAPI, status, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, status, HTTPException, Depends
 
-
-class ItemStatus(str, Enum):
-    pending = "pending"
-    done = "done"
-    in_progress = "in_progress"
-
-
-class TodoItem(BaseModel):
-    name: str
-    description: str | None = None
-    status: ItemStatus
-    due_date: datetime | None = None
-
-
-class TodoItemDto(BaseModel):
-    id: int
-    name: str
-    description: str | None = None
-    status: ItemStatus
-    due_date: datetime | None = None
-
+from app.models.todo_item import TodoItem, ItemStatus, TodoItemDto
 
 todo_items: dict = {
     1: TodoItem(
@@ -49,19 +28,16 @@ todo_items: dict = {
         name="Task 4",
         description="Task 4 description",
         status=ItemStatus.pending,
-        due_date=datetime.now(),
+        due_date=datetime.fromisoformat("2023-01-01"),
     ),
 }
 
 app = FastAPI()
 
 
-@app.get("/items")
-async def get_all_items(
+async def filter_items(
     item_status: ItemStatus | None = None, due_date: datetime | None = None
 ) -> list[TodoItemDto]:
-    if len(todo_items) == 0:
-        return []
     if item_status and due_date:
         return [
             TodoItemDto(id=item_id, **item.dict())
@@ -83,6 +59,15 @@ async def get_all_items(
     return [
         TodoItemDto(id=item_id, **item.dict()) for item_id, item in todo_items.items()
     ]
+
+
+@app.get("/items")
+async def get_all_items(
+    filtered_items: Annotated[list[TodoItemDto], Depends(filter_items)]
+) -> list[TodoItemDto]:
+    if len(todo_items) == 0:
+        return []
+    return filtered_items
 
 
 @app.get("/items/{item_id}")
