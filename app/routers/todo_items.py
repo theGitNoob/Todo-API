@@ -39,7 +39,7 @@ async def get(item_id: int, db: Session = Depends(get_db)):
     return todo_item
 
 
-@router.post("/", response_model=Item)
+@router.post("/", response_model=Item, status_code=201)
 async def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     return create_user_item(db, item, 1)
 
