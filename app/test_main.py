@@ -14,6 +14,12 @@ def test_get_all_items():
     assert len(response.json()) == len(todo_items)
 
 
+def test_get_all_items_filtered():
+    response = client.get("/items?item_status=pending&due_date=2023-01-01")
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+
+
 def test_get_item():
     response = client.get("/items/1")
     assert response.status_code == status.HTTP_200_OK

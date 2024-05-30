@@ -1,100 +1,56 @@
 from datetime import datetime
-from typing import Annotated
 
-from fastapi import FastAPI, status, HTTPException, Depends
+from fastapi import Depends, APIRouter, HTTPException
+from sqlalchemy.orm import Session
 
-from app.models.todo_item import TodoItem, ItemStatus, TodoItemDto
+from app.database import get_db
+from app.models.todo_item import ItemStatus
+from app.schemas.todo_item import Item, ItemCreate
+from app.utils.todo_item_utils import (
+    create_user_item,
+    update_item,
+    delete_item,
+    get_item,
+    filter_items,
+)
 
-todo_items: dict = {
-    1: TodoItem(
-        name="Task 1",
-        description="Task 1 description",
-        status=ItemStatus.pending,
-        due_date=datetime.now(),
-    ),
-    2: TodoItem(
-        name="Task 2",
-        description="Task 2 description",
-        status=ItemStatus.done,
-        due_date=datetime.now(),
-    ),
-    3: TodoItem(
-        name="Task 3",
-        description="Task 3 description",
-        status=ItemStatus.in_progress,
-        due_date=datetime.now(),
-    ),
-    4: TodoItem(
-        name="Task 4",
-        description="Task 4 description",
-        status=ItemStatus.pending,
-        due_date=datetime.fromisoformat("2023-01-01"),
-    ),
-}
-
-app = FastAPI()
+router = APIRouter(
+    prefix="/items",
+    tags=["Todo Items"],
+    # dependencies=[Depends(get_token_header)],
+    responses={404: {"description": "Not found"}},
+)
 
 
-async def filter_items(
-    item_status: ItemStatus | None = None, due_date: datetime | None = None
-) -> list[TodoItemDto]:
-    if item_status and due_date:
-        return [
-            TodoItemDto(id=item_id, **item.dict())
-            for item_id, item in todo_items.items()
-            if item.status == item_status and item.due_date == due_date
-        ]
-    elif item_status:
-        return [
-            TodoItemDto(id=item_id, **item.dict())
-            for item_id, item in todo_items.items()
-            if item.status == item_status
-        ]
-    if due_date:
-        return [
-            TodoItemDto(id=item_id, **item.dict())
-            for item_id, item in todo_items.items()
-            if item.due_date == due_date
-        ]
-    return [
-        TodoItemDto(id=item_id, **item.dict()) for item_id, item in todo_items.items()
-    ]
+@router.get("/", response_model=list[Item])
+async def get_all(
+    status: ItemStatus | None = None,
+    due_date: datetime | None = None,
+    db: Session = Depends(get_db),
+) -> list[Item]:
+    return filter_items(db, status, due_date)
 
 
-@app.get("/items")
-async def get_all_items(
-    filtered_items: Annotated[list[TodoItemDto], Depends(filter_items)]
-) -> list[TodoItemDto]:
-    if len(todo_items) == 0:
-        return []
-    return filtered_items
-
-
-@app.get("/items/{item_id}")
-async def get_item(item_id: int) -> TodoItem:
-    todo_item = todo_items.get(item_id)
+@router.get("/{item_id}", response_model=Item)
+async def get(item_id: int, db: Session = Depends(get_db)):
+    todo_item = get_item(db, item_id)
     if todo_item is None:
-        raise HTTPException(
-            status_code=404, detail=f"Item with id {item_id} was not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Item  not found")
     return todo_item
 
 
-@app.post("/items/", status_code=status.HTTP_201_CREATED)
-async def create_item(item: TodoItem) -> TodoItemDto:
-    item_id = len(todo_items)
-    todo_items[item_id] = item
-    return TodoItemDto(id=item_id, **item.dict())
+@router.post("/", response_model=Item)
+async def create_item(item: ItemCreate, db: Session = Depends(get_db)):
+    return create_user_item(db, item, 1)
 
 
-@app.put("/items/{item_id}")
-async def update_item(item_id: int, item: TodoItem) -> TodoItemDto:
-    _ = await get_item(item_id)
-    todo_items[item_id] = item
-    return TodoItemDto(id=item_id, **item.dict())
+@router.put("/{item_id}", response_model=Item)
+async def update(item_id: int, item: ItemCreate, db: Session = Depends(get_db)):
+    return update_item(db, item_id, item)
 
 
-@app.delete("/items/{item_id}")
-async def delete_item(item_id: int):
-    _ = await get_item(item_id)
-    del todo_items[item_id]
+@router.delete("/{item_id}")
+async def delete(item_id: int, db: Session = Depends(get_db)):
+    deleted_item = delete_item(db, item_id)
+    if deleted_item is None:
+        raise HTTPException(status_code=404, detail=f"Item not found")
