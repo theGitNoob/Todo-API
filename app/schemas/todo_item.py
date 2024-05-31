@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import BaseModel
 
 
@@ -7,7 +5,7 @@ class ItemBase(BaseModel):
     name: str
     description: str | None = None
     status: str
-    due_date: datetime | None = None
+    due_date: str | None = None
 
 
 class ItemCreate(ItemBase):
