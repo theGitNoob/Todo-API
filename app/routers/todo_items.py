@@ -35,7 +35,7 @@ async def get_all(
 async def get(item_id: int, db: Session = Depends(get_db)):
     todo_item = get_item(db, item_id)
     if todo_item is None:
-        raise HTTPException(status_code=404, detail=f"Item  not found")
+        raise HTTPException(status_code=404, detail="Item  not found")
     return todo_item
 
 
