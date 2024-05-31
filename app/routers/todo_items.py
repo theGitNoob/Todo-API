@@ -1,11 +1,14 @@
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.todo_item import ItemStatus
+from app.models.user import User
 from app.schemas.todo_item import Item, ItemCreate
+from app.utils.auth import get_current_active_user
 from app.utils.todo_item_utils import (
     create_user_item,
     update_item,
@@ -40,8 +43,12 @@ async def get(item_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=Item, status_code=201)
-async def create_item(item: ItemCreate, db: Session = Depends(get_db)):
-    return create_user_item(db, item, 1)
+async def create_item(
+    item: ItemCreate,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Session = Depends(get_db),
+):
+    return create_user_item(db, item, current_user.id)
 
 
 @router.put("/{item_id}", response_model=Item)
