@@ -53,4 +53,4 @@ async def update(item_id: int, item: ItemCreate, db: Session = Depends(get_db)):
 async def delete(item_id: int, db: Session = Depends(get_db)):
     deleted_item = delete_item(db, item_id)
     if deleted_item is None:
-        raise HTTPException(status_code=404, detail=f"Item not found")
+        raise HTTPException(status_code=404, detail="Item not found")
