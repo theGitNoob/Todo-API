@@ -1,7 +1,8 @@
+from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import ForeignKey, Integer, Column, String, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.database import Base
 
@@ -15,10 +16,10 @@ class ItemStatus(str, Enum):
 class Item(Base):
     __tablename__ = "items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String, nullable=True)
-    status = Column(String, index=True, default=ItemStatus.pending)
-    due_date = Column(DateTime, nullable=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(index=True)
+    description: Mapped[str] = mapped_column(nullable=True)
+    status: Mapped[str] = mapped_column(default=ItemStatus.pending)
+    due_date: Mapped[datetime] = mapped_column(nullable=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     owner = relationship("User", back_populates="items")
