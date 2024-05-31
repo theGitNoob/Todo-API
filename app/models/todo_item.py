@@ -1,4 +1,3 @@
-from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import ForeignKey
@@ -20,6 +19,6 @@ class Item(Base):
     name: Mapped[str] = mapped_column(index=True)
     description: Mapped[str] = mapped_column(nullable=True)
     status: Mapped[str] = mapped_column(default=ItemStatus.pending)
-    due_date: Mapped[datetime] = mapped_column(nullable=True)
+    due_date: Mapped[str] = mapped_column(nullable=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     owner = relationship("User", back_populates="items")
