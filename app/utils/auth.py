@@ -10,7 +10,12 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.auth import TokenData
 from app.schemas.user import User
-from app.utils.crypto import verify_password, decode_token, encode_token
+from app.utils.crypto import (
+    verify_password,
+    decode_token,
+    encode_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+)
 from app.utils.user_utils import get_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -27,7 +32,7 @@ def authenticate_user(username: str, password: str, db: Session) -> User | bool:
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    expire = datetime.now(timezone.utc) + timedelta(ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return encode_token(to_encode)
 
