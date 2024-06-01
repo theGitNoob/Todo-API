@@ -1,8 +1,7 @@
 import pytest
-# from fastapi.testclient import TestClient
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
-from starlette.testclient import TestClient
 
 from app.database import Base, get_db
 from app.main import app
@@ -41,17 +40,3 @@ def test_client(db_session):
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
-
-
-#
-# def override_get_db():
-#     try:
-#         db = TestingSessionLocal()
-#         yield db
-#     finally:
-#         db.close()
-
-
-# app.dependency_overrides[get_db] = override_get_db
-
-# client = TestClient(app)
