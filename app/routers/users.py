@@ -46,7 +46,7 @@ async def signup(
             detail="User already exists",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    new_user = create_user(db, UserCreate(**user_in.dict()))
+    new_user = create_user(db, UserCreate(**user_in.model_dump()))
     return new_user
 
 
