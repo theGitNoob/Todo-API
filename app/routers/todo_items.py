@@ -56,7 +56,7 @@ async def update(item_id: int, item: ItemCreate, db: Session = Depends(get_db)):
     return update_item(db, item_id, item)
 
 
-@router.delete("/{item_id}")
+@router.delete("/{item_id}", status_code=204)
 async def delete(item_id: int, db: Session = Depends(get_db)):
     deleted_item = delete_item(db, item_id)
     if deleted_item is None:
